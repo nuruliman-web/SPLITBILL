@@ -15,20 +15,19 @@ if "pesanan" not in st.session_state:
     st.session_state.pesanan = []
 
 # ==============================================================================
-# 1. Input Teman (Menggunakan Placeholder agar Kosong saat Diklik)
+# 1. Input Teman (Dibuat Form agar Otomatis Clear setelah Klik Simpan)
 # ==============================================================================
 st.subheader("👥 1. Siapa saja yang ikut?")
 
-# Jika sudah ada teman disimpan, tampilkan sebagai nilai awal. Jika belum, biarkan kosong dengan placeholder.
-nama_default = ", ".join(st.session_state.daftar_teman) if st.session_state.daftar_teman else ""
+# Gunakan form dengan clear_on_submit=True agar kolom langsung kosong setelah diklik
+with st.form("form_input_teman", clear_on_submit=True):
+    teman_input = st.text_input(
+        "Masukkan nama teman (pisahkan dengan koma):", 
+        placeholder="Contoh: Budi, Andi, Cici (Ketik di sini...)"
+    )
+    submit_teman = st.form_submit_button("💾 Simpan Daftar Teman")
 
-teman_input = st.text_input(
-    "Masukkan nama teman (pisahkan dengan koma):", 
-    value=nama_default,
-    placeholder="Contoh: Budi, Andi, Cici (Ketik di sini...)"
-)
-
-if st.button("💾 Simpan Daftar Teman"):
+if submit_teman:
     list_nama = [nama.strip() for nama in teman_input.split(",") if nama.strip()]
     
     if list_nama:
@@ -37,11 +36,11 @@ if st.button("💾 Simpan Daftar Teman"):
     else:
         st.error("❌ Gagal menyimpan! Harap masukkan minimal satu nama teman.")
 
-# Tampilkan status teman saat ini
+# Tampilkan status teman saat ini di luar form agar tetap terlihat
 if st.session_state.daftar_teman:
-    st.caption(f"Teman aktif saat ini: {', '.join(st.session_state.daftar_teman)}")
+    st.caption(f"🎯 **Teman aktif saat ini:** {', '.join(st.session_state.daftar_teman)}")
 else:
-    st.warning("⚠️ Belum ada teman yang disimpan. Silakan klik tombol 'Simpan Daftar Teman' terlebih dahulu.")
+    st.warning("⚠️ Belum ada teman yang disimpan. Silakan masukkan nama dan klik tombol 'Simpan Daftar Teman' terlebih dahulu.")
 
 
 # ==============================================================================
