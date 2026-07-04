@@ -13,7 +13,7 @@ st.set_page_config(
 )
 
 # ============================================
-# INISIALISASI SESSION STATE (Database Memory)
+# INISIALISASI SESSION STATE
 # ============================================
 if 'orang' not in st.session_state:
     st.session_state.orang = [
@@ -113,18 +113,21 @@ with tab1:
             
             st.markdown("---")
             st.markdown("### 📋 Item-item")
+            st.caption("💡 Masukkan **total harga** barang (bukan harga satuan). Contoh: 2 item x 10.000 = 20.000")
             
             # Jumlah item
             num_items = st.number_input("Jumlah item", min_value=1, max_value=10, value=2, step=1)
             
             items = []
             for i in range(int(num_items)):
-                col_i1, col_i2, col_i3 = st.columns([2, 1.2, 1.2])
+                col_i1, col_i2, col_i3, col_i4 = st.columns([1.8, 1, 1.2, 1.2])
                 with col_i1:
                     nama_item = st.text_input(f"Nama {i+1}", key=f"item_{i}", placeholder="Bakso, Es Teh...")
                 with col_i2:
-                    harga = st.number_input(f"Harga {i+1}", min_value=0, key=f"harga_{i}", step=1000, value=0)
+                    qty = st.number_input(f"Qty {i+1}", min_value=1, value=1, key=f"qty_{i}", step=1)
                 with col_i3:
+                    total_harga = st.number_input(f"Total {i+1}", min_value=0, key=f"harga_{i}", step=1000, value=0)
+                with col_i4:
                     pemilik = st.selectbox(
                         f"Milik {i+1}", 
                         options=list(orang_options.keys()),
@@ -132,10 +135,14 @@ with tab1:
                         key=f"owner_{i}"
                     )
                 
-                if nama_item and harga > 0:
+                if nama_item and total_harga > 0:
+                    # Hitung harga satuan = total / qty
+                    harga_satuan = total_harga / qty if qty > 0 else 0
                     items.append({
                         'item': nama_item,
-                        'harga': harga,
+                        'qty': qty,
+                        'total_harga': total_harga,
+                        'harga_satuan': harga_satuan,
                         'orang_id': int(pemilik)
                     })
             
@@ -153,18 +160,18 @@ with tab1:
         # ============================================
         if submitted:
             if not items:
-                st.error("❌ Minimal 1 item dengan harga > 0!")
+                st.error("❌ Minimal 1 item dengan total harga > 0!")
             else:
-                # Hitung total
-                total_harga = sum(i['harga'] for i in items)
+                # Hitung total (pakai total_harga, bukan harga satuan)
+                total_harga = sum(i['total_harga'] for i in items)
                 total_tax = (total_harga * tax) / 100
                 grand_total = total_harga + total_tax + service
                 
-                # Hitung per orang
+                # Hitung per orang (pakai total_harga)
                 per_orang = {}
                 for item in items:
                     nama = orang_options[str(item['orang_id'])]
-                    per_orang[nama] = per_orang.get(nama, 0) + item['harga']
+                    per_orang[nama] = per_orang.get(nama, 0) + item['total_harga']
                 
                 # Tampilkan hasil
                 st.divider()
@@ -194,6 +201,20 @@ with tab1:
                 
                 st.dataframe(pd.DataFrame(result_data), use_container_width=True, hide_index=True)
                 
+                # Detail item dengan qty
+                st.markdown("##### 📋 Detail Item")
+                detail_data = []
+                for item in items:
+                    nama = orang_options[str(item['orang_id'])]
+                    detail_data.append({
+                        'Item': item['item'],
+                        'Qty': item['qty'],
+                        'Harga Satuan': f"Rp {item['harga_satuan']:,.0f}".replace(',', '.'),
+                        'Total': f"Rp {item['total_harga']:,.0f}".replace(',', '.'),
+                        'Pemilik': nama
+                    })
+                st.dataframe(pd.DataFrame(detail_data), use_container_width=True, hide_index=True)
+                
                 # Simpan data ke session untuk tombol simpan
                 st.session_state.last_split = {
                     'items': items,
@@ -212,12 +233,14 @@ with tab1:
                         split = st.session_state.last_split
                         items_data = []
                         for item in split['items']:
-                            proporsi = item['harga'] / split['total_harga'] if split['total_harga'] > 0 else 0
+                            proporsi = item['total_harga'] / split['total_harga'] if split['total_harga'] > 0 else 0
                             items_data.append({
                                 'orang_id': item['orang_id'],
                                 'item': item['item'],
-                                'harga': item['harga'],
-                                'total_per_orang': item['harga'] + (split['total_tax'] * proporsi) + (split['service'] * proporsi)
+                                'qty': item['qty'],
+                                'harga_satuan': item['harga_satuan'],
+                                'total_harga': item['total_harga'],
+                                'total_per_orang': item['total_harga'] + (split['total_tax'] * proporsi) + (split['service'] * proporsi)
                             })
                         
                         if simpan_transaksi({
@@ -296,7 +319,6 @@ with tab3:
     if not transaksi:
         st.info("💡 Belum ada transaksi")
     else:
-        # Tampilkan dari yang terbaru
         for t in reversed(transaksi):
             with st.container(border=True):
                 col1, col2 = st.columns([3, 1])
@@ -306,12 +328,11 @@ with tab3:
                 with col2:
                     st.markdown(f"**Rp {t['total']:,.0f}**".replace(',', '.'), unsafe_allow_html=True)
                 
-                # Detail item
                 if t.get('items'):
                     orang_map = {o['id']: o['nama'] for o in get_orang()}
                     for item in t['items']:
                         nama = orang_map.get(item['orang_id'], 'Unknown')
-                        st.caption(f"  🛒 {item['item']} - Rp {item['harga']:,.0f} ({nama})".replace(',', '.'))
+                        st.caption(f"  🛒 {item['item']} (x{item['qty']}) - Rp {item['total_harga']:,.0f} ({nama})".replace(',', '.'))
 
 
 # ============================================
