@@ -11,11 +11,11 @@ st.set_page_config(
 )
 
 # ==============================================================================
-# CSS KUSTOM (FIX: Support Dark Mode & Light Mode Otomatis)
+# CSS KUSTOM (POKOKNYA UNGU JADIIN PUTIH/MINIMALIS)
 # ==============================================================================
 st.markdown("""
 <style>
-    /* Menggunakan background semi transparan agar menyatu dengan tema dark/light HP */
+    /* Mengubah background form dan container jadi transparan/bersih */
     div[data-testid="stForm"] {
         background: rgba(128, 128, 128, 0.05);
         padding: 20px;
@@ -28,6 +28,8 @@ st.markdown("""
         padding: 12px 16px;
         border: 1px solid rgba(128, 128, 128, 0.1);
     }
+    
+    /* Memaksa Checkbox ke samping */
     [data-testid="stForm"] .stCheckbox {
         display: inline-block !important;
         width: auto !important;
@@ -38,13 +40,31 @@ st.markdown("""
         display: block;
         width: 100%;
     }
+    
+    /* SAKLAR: Ubah Tombol Utama (Primary) dari Ungu Jadi Putih Elegan */
+    .stButton button[kind="primary"] {
+        background-color: #ffffff !important;
+        color: #1e293b !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 12px !important;
+        font-weight: 600 !important;
+    }
+    .stButton button[kind="primary"]:hover {
+        background-color: #f8fafc !important;
+        border-color: #94a3b8 !important;
+    }
+    
+    /* Tombol Secondary biasa */
     .stButton button {
         border-radius: 12px !important;
         font-weight: 600 !important;
     }
+    
+    /* SAKLAR: Ubah Garis Pinggir Ungu/Indigo di Alert Box (st.info, st.success) jadi Putih/Abu Bersih */
     .stAlert {
         border-radius: 12px !important;
-        border-left: 4px solid #6366f1 !important;
+        border-left: 4px solid #cbd5e1 !important; /* Diubah dari ungu ke abu-abu putih */
+        background-color: rgba(128, 128, 128, 0.05) !important;
     }
 </style>
 """, unsafe_allow_html=True)
