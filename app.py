@@ -4,9 +4,9 @@ import pandas as pd
 # Set layout ke centered agar pas untuk rasio layar vertikal HP
 st.set_page_config(page_title="Split Bill Apps", page_icon="💰", layout="centered")
 
-# Judul utama kustom HP
-st.markdown("<h2 style='text-align: center; margin-bottom: 0px;'>💰 Split Bill Calculator</h2>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; font-size: 14px; color: gray;'>Bagi rata tagihan bareng temen langsung dari HP!</p>", unsafe_allow_html=True)
+# Judul menggunakan format Markdown standar agar warnanya adaptif mengikuti sistem (Dark/Light)
+st.title("💰 Split Bill Calculator")
+st.caption("Bagi rata tagihan bareng temen langsung dari HP!")
 
 st.markdown("---")
 
@@ -38,14 +38,10 @@ if st.button("💾 Simpan Daftar Teman", type="primary", use_container_width=Tru
     else:
         st.error("❌ Gagal menyimpan! Harap masukkan minimal satu nama teman.")
 
-# TINGKATKAN: Teks "Teman aktif" diubah menjadi warna Hitam Pekat (#000000)
+# Tampilan "Teman aktif" yang adaptif mengikuti tema layar HP/Laptop
 if st.session_state.daftar_teman:
-    st.markdown(
-        f"<div style='font-size: 14px; background-color: #f1f3f4; padding: 10px; border-radius: 5px; margin-top: 5px; border-left: 5px solid #5f6368; color: #000000; font-weight: 500;'>"
-        f"🎯 Teman aktif: {', '.join(st.session_state.daftar_teman)}"
-        f"</div>", 
-        unsafe_allow_html=True
-    )
+    # Menggunakan st.info agar background dan warna teksnya otomatis menyesuaikan dark/light mode sistem
+    st.info(f"🎯 **Teman aktif:** {', '.join(st.session_state.daftar_teman)}")
 else:
     st.warning("⚠️ Belum ada teman yang disimpan. Ketik nama di atas lalu klik tombol Simpan.")
 
@@ -59,7 +55,6 @@ st.markdown("### 🍔 2. Detail Pesanan")
 with st.form("form_tambah_item", clear_on_submit=True):
     nama_item = st.text_input("Nama Makanan/Minuman:", placeholder="Contoh: Nasi Goreng")
     
-    # TINGKATKAN: Menggunakan step=1 dan nilai int agar keyboard HP otomatis memunculkan Numpad/Angka saja
     harga_item = st.number_input(
         "Harga (Rp):", 
         min_value=0, 
@@ -87,19 +82,22 @@ if submit_button:
     else:
         st.session_state.pesanan.append({
             "item": nama_item,
-            "harga": int(harga_item), # Memastikan disimpan sebagai angka bulat
+            "harga": int(harga_item),
             "patungan": siapa_makan
         })
         st.rerun()
 
-# Tampilkan list pesanan
+# Perbaikan bagian "Daftar Pesanan Saat Ini" agar mendukung Dark Mode HP
 if st.session_state.pesanan:
     st.markdown("#### 📝 Daftar Pesanan Saat Ini:")
     
     for index, p in enumerate(st.session_state.pesanan):
+        # Menggunakan wadah container bawaan Streamlit tanpa kode warna HTML kustom
         with st.container(border=True):
-            st.markdown(f"<p style='margin:0; font-size:14px; color:#000000;'><b>{p['item']}</b></p>", unsafe_allow_html=True)
-            st.markdown(f"<p style='margin:0; font-size:13px; color:#5f6368;'>Rp {p['harga']:,} • Oleh: {', '.join(p['patungan'])}</p>", unsafe_allow_html=True)
+            # Murni menggunakan teks Markdown standar agar otomatis berubah putih saat HP Dark Mode
+            st.markdown(f"**{p['item']}**")
+            st.markdown(f"Rp {p['harga']:,} • Oleh: {', '.join(p['patungan'])}")
+            
             if st.button("🗑️ Hapus", key=f"hapus_{index}", type="secondary", use_container_width=True):
                 st.session_state.pesanan.pop(index)
                 st.rerun()
