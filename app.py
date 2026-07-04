@@ -113,38 +113,53 @@ with tab1:
             
             st.markdown("---")
             st.markdown("### 📋 Item-item")
-            st.caption("💡 Masukkan **total harga** barang (bukan harga satuan). Contoh: 2 item x 10.000 = 20.000")
+            st.caption("💡 Masukkan **total harga** per item dan **qty**. Setiap unit akan muncul sebagai baris terpisah.")
             
-            # Jumlah item
-            num_items = st.number_input("Jumlah item", min_value=1, max_value=10, value=2, step=1)
+            # Jumlah item (jenis barang)
+            num_items = st.number_input("Jumlah jenis item", min_value=1, max_value=10, value=1, step=1)
             
-            items = []
+            # Kumpulkan semua item yang di-expand
+            expanded_items = []
+            
             for i in range(int(num_items)):
-                col_i1, col_i2, col_i3, col_i4 = st.columns([1.8, 1, 1.2, 1.2])
+                st.markdown(f"##### Item #{i+1}")
+                col_i1, col_i2, col_i3 = st.columns([2, 1, 1.2])
                 with col_i1:
-                    nama_item = st.text_input(f"Nama {i+1}", key=f"item_{i}", placeholder="Bakso, Es Teh...")
+                    nama_item = st.text_input(f"Nama item", key=f"item_{i}", placeholder="Nasi Goreng...")
                 with col_i2:
-                    qty = st.number_input(f"Qty {i+1}", min_value=1, value=1, key=f"qty_{i}", step=1)
+                    qty = st.number_input(f"Qty", min_value=1, value=1, key=f"qty_{i}", step=1)
                 with col_i3:
-                    total_harga = st.number_input(f"Total {i+1}", min_value=0, key=f"harga_{i}", step=1000, value=0)
-                with col_i4:
-                    pemilik = st.selectbox(
-                        f"Milik {i+1}", 
-                        options=list(orang_options.keys()),
-                        format_func=lambda x: orang_options[x],
-                        key=f"owner_{i}"
-                    )
+                    total_harga = st.number_input(f"Total harga", min_value=0, key=f"harga_{i}", step=1000, value=0)
                 
-                if nama_item and total_harga > 0:
-                    # Hitung harga satuan = total / qty
-                    harga_satuan = total_harga / qty if qty > 0 else 0
-                    items.append({
-                        'item': nama_item,
-                        'qty': qty,
-                        'total_harga': total_harga,
-                        'harga_satuan': harga_satuan,
-                        'orang_id': int(pemilik)
-                    })
+                # Kalau qty > 1, tampilkan per-unit
+                if nama_item and total_harga > 0 and qty > 0:
+                    harga_satuan = total_harga / qty
+                    
+                    st.markdown(f"**📌 {qty} unit {nama_item} - @Rp {harga_satuan:,.0f}**".replace(',', '.'))
+                    
+                    # Tampilkan per-unit dengan pilihan pemilik
+                    for u in range(qty):
+                        col_u1, col_u2 = st.columns([3, 1.2])
+                        with col_u1:
+                            st.caption(f"Unit #{u+1}")
+                        with col_u2:
+                            pemilik = st.selectbox(
+                                f"Milik unit {u+1} - {nama_item}",
+                                options=list(orang_options.keys()),
+                                format_func=lambda x: orang_options[x],
+                                key=f"owner_{i}_{u}"
+                            )
+                        
+                        expanded_items.append({
+                            'item': nama_item,
+                            'qty': 1,
+                            'unit': u+1,
+                            'harga_satuan': harga_satuan,
+                            'total_harga': harga_satuan,
+                            'orang_id': int(pemilik)
+                        })
+                    
+                    st.divider()
             
             st.markdown("---")
             col_t1, col_t2 = st.columns(2)
@@ -159,17 +174,17 @@ with tab1:
         # PROSES HITUNG
         # ============================================
         if submitted:
-            if not items:
+            if not expanded_items:
                 st.error("❌ Minimal 1 item dengan total harga > 0!")
             else:
-                # Hitung total (pakai total_harga, bukan harga satuan)
-                total_harga = sum(i['total_harga'] for i in items)
+                # Hitung total dari semua unit
+                total_harga = sum(i['total_harga'] for i in expanded_items)
                 total_tax = (total_harga * tax) / 100
                 grand_total = total_harga + total_tax + service
                 
-                # Hitung per orang (pakai total_harga)
+                # Hitung per orang
                 per_orang = {}
-                for item in items:
+                for item in expanded_items:
                     nama = orang_options[str(item['orang_id'])]
                     per_orang[nama] = per_orang.get(nama, 0) + item['total_harga']
                 
@@ -201,23 +216,22 @@ with tab1:
                 
                 st.dataframe(pd.DataFrame(result_data), use_container_width=True, hide_index=True)
                 
-                # Detail item dengan qty
-                st.markdown("##### 📋 Detail Item")
+                # Detail item per unit
+                st.markdown("##### 📋 Detail Item per Unit")
                 detail_data = []
-                for item in items:
+                for item in expanded_items:
                     nama = orang_options[str(item['orang_id'])]
                     detail_data.append({
                         'Item': item['item'],
-                        'Qty': item['qty'],
-                        'Harga Satuan': f"Rp {item['harga_satuan']:,.0f}".replace(',', '.'),
-                        'Total': f"Rp {item['total_harga']:,.0f}".replace(',', '.'),
+                        'Unit': item['unit'],
+                        'Harga': f"Rp {item['harga_satuan']:,.0f}".replace(',', '.'),
                         'Pemilik': nama
                     })
                 st.dataframe(pd.DataFrame(detail_data), use_container_width=True, hide_index=True)
                 
                 # Simpan data ke session untuk tombol simpan
                 st.session_state.last_split = {
-                    'items': items,
+                    'items': expanded_items,
                     'total_harga': total_harga,
                     'total_tax': total_tax,
                     'service': service,
@@ -237,7 +251,8 @@ with tab1:
                             items_data.append({
                                 'orang_id': item['orang_id'],
                                 'item': item['item'],
-                                'qty': item['qty'],
+                                'qty': 1,
+                                'unit': item['unit'],
                                 'harga_satuan': item['harga_satuan'],
                                 'total_harga': item['total_harga'],
                                 'total_per_orang': item['total_harga'] + (split['total_tax'] * proporsi) + (split['service'] * proporsi)
@@ -332,7 +347,7 @@ with tab3:
                     orang_map = {o['id']: o['nama'] for o in get_orang()}
                     for item in t['items']:
                         nama = orang_map.get(item['orang_id'], 'Unknown')
-                        st.caption(f"  🛒 {item['item']} (x{item['qty']}) - Rp {item['total_harga']:,.0f} ({nama})".replace(',', '.'))
+                        st.caption(f"  🛒 {item['item']} (Unit {item['unit']}) - Rp {item['harga_satuan']:,.0f} ({nama})".replace(',', '.'))
 
 
 # ============================================
