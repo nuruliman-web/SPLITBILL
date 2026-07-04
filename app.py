@@ -47,7 +47,7 @@ else:
 
 
 # ==============================================================================
-# 2. INPUT ITEM PESANAN (Menggunakan Checkbox Pengganti Dropdown)
+# 2. INPUT ITEM PESANAN (Checkbox Horizontal & Auto-Wrap ke Bawah)
 # ==============================================================================
 st.markdown("---")
 st.markdown("### 🍔 2. Detail Pesanan")
@@ -63,23 +63,43 @@ with st.form("form_tambah_item", clear_on_submit=True):
         placeholder="Masukkan harga angka saja"
     )
     
-    # --- PENGGANTI DROPDOWN: Checkbox Sesuai Nama Orang ---
+    # --- PENGGANTI: Checkbox Fleksibel Kanan-Bawah ---
     st.markdown("<p style='font-size: 14px; margin-bottom: 5px;'><b>Dipesan oleh:</b></p>", unsafe_allow_html=True)
     
     siapa_makan = []
     if st.session_state.daftar_teman:
-        # Membuat baris horizontal untuk nama-nama teman di HP
-        cols = st.columns(len(st.session_state.daftar_teman))
-        for idx, nama in enumerate(st.session_state.daftar_teman):
-            with cols[idx]:
-                # Jika dicentang, nama teman akan dimasukkan ke dalam list siapa_makan
-                if st.checkbox(nama, key=f"cb_{nama}"):
-                    siapa_makan.append(nama)
+        # Trik HTML & CSS: Membuat kontainer flexbox agar item otomatis menyamping & turun jika penuh
+        st.markdown(
+            """
+            <style>
+            .flex-container {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 15px;
+                padding: 5px 0px;
+            }
+            .flex-item {
+                display: inline-block;
+            }
+            </style>
+            """, 
+            unsafe_allow_html=True
+        )
+        
+        # Mulai membungkus checkbox di dalam wadah flexbox kustom
+        st.markdown('<div class="flex-container">', unsafe_allow_html=True)
+        
+        for nama in st.session_state.daftar_teman:
+            # Menggunakan st.checkbox standar tapi ditaruh di tempat yang rapat
+            if st.checkbox(nama, key=f"cb_{nama}"):
+                siapa_makan.append(nama)
+                
+        st.markdown('</div>', unsafe_allow_html=True)
     else:
         st.caption("⚠️ Belum ada nama teman. Isi dulu di langkah 1 ya!")
     # -----------------------------------------------------
     
-    st.write("") # Spasi pemisah
+    st.write("") 
     submit_button = st.form_submit_button(label="➕ Tambah Item", use_container_width=True)
 
 if submit_button:
