@@ -4,48 +4,60 @@ import pandas as pd
 # Set layout ke centered agar pas untuk rasio layar vertikal HP
 st.set_page_config(page_title="Split Bill Apps", page_icon="💰", layout="centered")
 
-# Ukuran judul yang disesuaikan agar tidak terpotong di layar HP
+# Judul utama kustom HP
 st.markdown("<h2 style='text-align: center; margin-bottom: 0px;'>💰 Split Bill Calculator</h2>", unsafe_allow_html=True)
 st.markdown("<p style='text-align: center; font-size: 14px; color: gray;'>Bagi rata tagihan bareng temen langsung dari HP!</p>", unsafe_allow_html=True)
 
 st.markdown("---")
 
-# Inisialisasi session state jika belum ada
+# ==============================================================================
+# INISIALISASI MEMORI (SESSION STATE)
+# ==============================================================================
 if "daftar_teman" not in st.session_state:
     st.session_state.daftar_teman = []
 if "pesanan" not in st.session_state:
     st.session_state.pesanan = []
 
 # ==============================================================================
-# 1. Input Teman (Form - Ukuran Teks HP)
+# 1. INPUT TEMAN (Tanpa Form agar Tidak Hilang Saat Refresh)
 # ==============================================================================
 st.markdown("### 👥 1. Siapa saja yang ikut?")
 
-with st.form("form_input_teman", clear_on_submit=True):
-    teman_input = st.text_input(
-        "Masukkan nama teman (pisahkan dengan koma):", 
-        placeholder="Contoh: Budi, Andi, Cici"
-    )
-    submit_teman = st.form_submit_button("💾 Simpan Daftar Teman", use_container_width=True)
+# Kolom input teks biasa dengan placeholder
+teman_input = st.text_input(
+    "Masukkan nama teman (pisahkan dengan koma):", 
+    placeholder="Contoh: Budi, Andi, Cici",
+    key="input_nama_teman" # Menggunakan key agar state aman
+)
 
-# Status teman aktif dengan font yang ramah layar kecil
+# Tombol simpan ditaruh di luar form
+if st.button("💾 Simpan Daftar Teman", type="primary", use_container_width=True):
+    list_nama = [nama.strip() for nama in teman_input.split(",") if nama.strip()]
+    
+    if list_nama:
+        st.session_state.daftar_teman = list_nama
+        st.success(f"✅ Berhasil menyimpan {len(list_nama)} teman!")
+    else:
+        st.error("❌ Gagal menyimpan! Harap masukkan minimal satu nama teman.")
+
+# Tampilkan status teman aktif saat ini secara permanen jika sudah disimpan
 if st.session_state.daftar_teman:
-    st.markdown(f"<div style='font-size: 13px; background-color: #f0f2f6; padding: 8px; border-radius: 5px; margin-top: 5px;'>🎯 <b>Teman aktif:</b> {', '.join(st.session_state.daftar_teman)}</div>", unsafe_allow_html=True)
+    st.markdown(f"<div style='font-size: 13px; background-color: #e8f5e9; padding: 10px; border-radius: 5px; margin-top: 5px; border-left: 5px solid #2e7d32;'>🎯 <b>Teman aktif:</b> {', '.join(st.session_state.daftar_teman)}</div>", unsafe_allow_html=True)
 else:
-    st.warning("⚠️ Belum ada teman yang disimpan.")
+    st.warning("⚠️ Belum ada teman yang disimpan. Ketik nama di atas lalu klik tombol Simpan.")
 
 
 # ==============================================================================
-# 2. Input Item Pesanan & Daftar Pesanan (Dioptimasi untuk Scrolling HP)
+# 2. INPUT ITEM PESANAN
 # ==============================================================================
 st.markdown("---")
 st.markdown("### 🍔 2. Detail Pesanan")
 
 with st.form("form_tambah_item", clear_on_submit=True):
-    # Di HP, kolom akan otomatis tersusun vertikal ke bawah agar tidak sempit
     nama_item = st.text_input("Nama Makanan/Minuman:", placeholder="Contoh: Nasi Goreng")
     harga_item = st.number_input("Harga (Rp):", min_value=0, step=1000, value=None, placeholder="Masukkan harga")
     
+    # Dropdown otomatis mengambil data dari session_state.daftar_teman
     siapa_makan = st.multiselect(
         "Dipesan oleh:", 
         options=st.session_state.daftar_teman
@@ -70,12 +82,11 @@ if submit_button:
         })
         st.rerun()
 
-# Tampilkan list pesanan bergaya "Struk HP"
+# Tampilkan list pesanan
 if st.session_state.pesanan:
     st.markdown("#### 📝 Daftar Pesanan Saat Ini:")
     
     for index, p in enumerate(st.session_state.pesanan):
-        # Desain layout box agar tombol hapus mudah ditekan lewat jempol HP
         with st.container(border=True):
             st.markdown(f"<p style='margin:0; font-size:14px;'><b>{p['item']}</b></p>", unsafe_allow_html=True)
             st.markdown(f"<p style='margin:0; font-size:13px; color:gray;'>Rp {p['harga']:,} • Oleh: {', '.join(p['patungan'])}</p>", unsafe_allow_html=True)
@@ -84,13 +95,13 @@ if st.session_state.pesanan:
                 st.rerun()
                 
     st.write("") 
-    if st.button("🚨 Reset Semua Pesanan", type="primary", use_container_width=True):
+    if st.button("🚨 Reset Semua Pesanan", type="secondary", use_container_width=True):
         st.session_state.pesanan = []
         st.rerun()
 
 
 # ==============================================================================
-# 3. Pajak dan Service Charge
+# 3. BIAYA TAMBAHAN
 # ==============================================================================
 st.markdown("---")
 st.markdown("### 📊 3. Biaya Tambahan")
@@ -102,7 +113,7 @@ with col_service:
 
 
 # ==============================================================================
-# 4. Perhitungan Akhir (Hanya Total Bersih)
+# 4. PERHITUNGAN AKHIR
 # ==============================================================================
 st.markdown("---")
 st.markdown("### 🧾 4. Total Tagihan Per Orang")
@@ -121,10 +132,8 @@ if st.session_state.daftar_teman and st.session_state.pesanan:
     faktor_tambahan = 1 + (pajak_persen / 100) + (service_persen / 100)
     total_akhir = total_subtotal * faktor_tambahan
 
-    # Ringkasan struk mini
-    st.info(f"**Subtotal:** Rp {total_subtotal:,.0f}\n\n**Total (+ Pajak & Service):** Rp {total_akhir:,.0f}")
+    st.info(f"**Subtotal:** Rp {total_subtotal:,.0f}\n\n**Total Akhir (+ Pajak & Service):** Rp {total_akhir:,.0f}")
 
-    # Data hasil akhir yang ringkas untuk layar HP
     data_final = []
     for orang, subtotal_orang in tagihan_per_orang.items():
         total_orang = subtotal_orang * faktor_tambahan
@@ -133,10 +142,7 @@ if st.session_state.daftar_teman and st.session_state.pesanan:
             "Total Bayar": f"Rp {round(total_orang):,}"
         })
 
-    # Konversi ke DataFrame
     df_final = pd.DataFrame(data_final)
-    
-    # Menggunakan st.dataframe dengan ukuran penuh agar bisa di-scroll horizontal jika nama terlalu panjang di HP
     st.dataframe(df_final.set_index("Nama"), use_container_width=True)
 else:
     st.info("Isi daftar teman dan pesanan untuk melihat hasil.")
