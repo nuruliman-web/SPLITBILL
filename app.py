@@ -5,7 +5,7 @@ import pandas as pd
 st.set_page_config(page_title="Split Bill Apps", page_icon="💰", layout="centered")
 
 # Judul menggunakan format Markdown standar agar adaptif mengikuti sistem (Dark/Light)
-st.title("💰 Split Bill Calculator")
+st.title("💰 Split Bill")
 st.caption("Bagi rata tagihan bareng temen langsung dari HP!")
 
 st.markdown("---")
@@ -21,7 +21,7 @@ if "pesanan" not in st.session_state:
 # ==============================================================================
 # 1. INPUT TEMAN
 # ==============================================================================
-st.markdown("### 👥 1. Siapa saja yang ikut?")
+st.markdown("### 👥 Siapa saja yang ikut?")
 
 teman_input = st.text_input(
     "Masukkan nama teman (pisahkan dengan koma):", 
@@ -49,7 +49,7 @@ else:
 # 2. INPUT ITEM PESANAN & FIX CHECKBOX HORIZONTAL
 # ==============================================================================
 st.markdown("---")
-st.markdown("### 🍔 2. Detail Pesanan")
+st.markdown("### 🍔 Detail Pesanan Mu")
 
 with st.form("form_tambah_item", clear_on_submit=True):
     nama_item = st.text_input("Nama Makanan/Minuman:", placeholder="Contoh: Nasi Goreng")
@@ -120,7 +120,7 @@ if submit_button:
 
 # DI-FIX: Tampilan Daftar Pesanan (Auto-Theme & Muncul Detail Nama Orang)
 if st.session_state.pesanan:
-    st.markdown("#### 📝 Daftar Pesanan Saat Ini:")
+    st.markdown("#### 📝 Ini Daftar yang Kamu Beli:")
     
     for index, p in enumerate(st.session_state.pesanan):
         with st.container(border=True):
@@ -142,7 +142,7 @@ if st.session_state.pesanan:
 # 3. BIAYA TAMBAHAN
 # ==============================================================================
 st.markdown("---")
-st.markdown("### 📊 3. Biaya Tambahan")
+st.markdown("### 📊 Ada Pajak-Pajak Gak?")
 col_tax, col_service = st.columns(2)
 with col_tax:
     pajak_persen = st.number_input("Pajak (%)", min_value=0.0, max_value=100.0, value=10.0, step=0.5)
@@ -154,7 +154,7 @@ with col_service:
 # 4. PERHITUNGAN AKHIR
 # ==============================================================================
 st.markdown("---")
-st.markdown("### 🧾 4. Total Tagihan Per Orang")
+st.markdown("### 🧾 Bayarnya Segini Ya Cek Nama Lu!")
 
 if st.session_state.daftar_teman and st.session_state.pesanan:
     tagihan_per_orang = {nama: 0.0 for nama in st.session_state.daftar_teman}
