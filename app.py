@@ -21,12 +21,14 @@ if "pesanan" not in st.session_state:
 # ==============================================================================
 # 1. INPUT TEMAN
 # ==============================================================================
-st.markdown("### 👥 Siapa Aja Yang Ikut?")
+# Menggunakan HTML Font-size agar ukuran teks tidak kebesaran di HP (1 baris)
+st.markdown("<h4 style='margin:0;'>👥 Siapa Aja Yang Ikut?</h4>", unsafe_allow_html=True)
 
 teman_input = st.text_input(
     "Masukkan nama teman lu (pisahkan dengan koma):", 
     placeholder="Contoh: Monyet, Babi, Anjing",
-    key="input_nama_teman"
+    key="input_nama_teman",
+    label_visibility="collapsed" # Menyembunyikan label bawaan agar hemat tempat
 )
 
 if st.button("💾 Simpan Daftar Teman", type="primary", use_container_width=True):
@@ -49,7 +51,7 @@ else:
 # 2. INPUT ITEM PESANAN & FIX CHECKBOX HORIZONTAL
 # ==============================================================================
 st.markdown("---")
-st.markdown("### 🍔 Masukin Apa Aja yg Lu Makan")
+st.markdown("<h4 style='margin:0;'>🍔 Masukin Apa Aja yg Lu Makan</h4>", unsafe_allow_html=True)
 
 with st.form("form_tambah_item", clear_on_submit=True):
     nama_item = st.text_input("Nama Makanan/Minuman:", placeholder="Contoh: Nasi Goreng")
@@ -110,7 +112,6 @@ if submit_button:
     elif not siapa_makan:
         st.error("❌ Pilih minimal satu orang yang memesan!")
     else:
-        # DI-FIX: Menyimpan nama kunci yang benar sebagai 'dipesan_oleh' agar tidak bentrok atau hilang
         st.session_state.pesanan.append({
             "item": nama_item,
             "harga": int(harga_item),
@@ -118,13 +119,12 @@ if submit_button:
         })
         st.rerun()
 
-# DI-FIX: Tampilan Daftar Pesanan (Auto-Theme & Muncul Detail Nama Orang)
+# Tampilan Daftar Pesanan (Auto-Theme & Muncul Detail Nama Orang)
 if st.session_state.pesanan:
-    st.markdown("#### 📝 Ini Rekap Makan Lu, Udah Bener?")
+    st.markdown("##### 📝 Ini Rekap Makan Lu, Udah Bener?")
     
     for index, p in enumerate(st.session_state.pesanan):
         with st.container(border=True):
-            # Menggunakan Markdown standar agar mendukung Dark Mode / Light Mode otomatis
             st.markdown(f"**{p['item']}**")
             st.markdown(f"Rp {p['harga']:,} ||  Dipesan Oleh: {', '.join(p['dipesan_oleh'])}")
             
@@ -139,27 +139,36 @@ if st.session_state.pesanan:
 
 
 # ==============================================================================
-# 3. BIAYA TAMBAHAN
+# 3. BIAYA TAMBAHAN & DISKON (Dipecah Jadi 3 Kolom)
 # ==============================================================================
 st.markdown("---")
-st.markdown("### 📊 Ada Pajak Apa Diskon Gak?")
-col_tax, col_service = st.columns(2)
+# Ukuran font dikecilkan sedikit agar muat 1 baris di HP
+st.markdown("<h4 style='margin:0;'>📊 Ada Pajak Apa Diskon Gak?</h4>", unsafe_allow_html=True)
+
+# Memisahkan input menjadi 3 kolom agar rapi menyamping di tablet/HP
+col_tax, col_service, col_discount = st.columns(3)
 with col_tax:
     pajak_persen = st.number_input("Pajak (%)", min_value=0.0, max_value=100.0, value=10.0, step=0.5)
 with col_service:
     service_persen = st.number_input("Service (%)", min_value=0.0, max_value=100.0, value=5.0, step=0.5)
+with col_discount:
+    # Menggunakan nominal Rupiah langsung karena lebih sering ditemui di nota diskon makan
+    diskon_rp = st.number_input("Diskon (Rp)", min_value=0, value=0, step=1000)
 
 
 # ==============================================================================
 # 4. PERHITUNGAN AKHIR
 # ==============================================================================
 st.markdown("---")
-st.markdown("### 🧾 Bayarnya Segini Ya Cek Nama Lu!")
+# Judul ini dipastikan berukuran pas di HP agar tidak patah ke bawah
+st.markdown("<h4 style='margin:0;'>🧾 Bayarnya Segini Ya Cek Nama Lu!</h4>", unsafe_allow_html=True)
+st.write("")
 
 if st.session_state.daftar_teman and st.session_state.pesanan:
     tagihan_per_orang = {nama: 0.0 for nama in st.session_state.daftar_teman}
     total_subtotal = 0
 
+    # Menghitung subtotal dasar dari pesanan makanan
     for p in st.session_state.pesanan:
         harga_per_orang = p["harga"] / len(p["dipesan_oleh"])
         total_subtotal += p["harga"]
@@ -167,17 +176,36 @@ if st.session_state.daftar_teman and st.session_state.pesanan:
             if orang in tagihan_per_orang:
                 tagihan_per_orang[orang] += harga_per_orang
 
-    faktor_tambahan = 1 + (pajak_persen / 100) + (service_persen / 100)
-    total_akhir = total_subtotal * faktor_tambahan
+    # Hitung nilai pajak dan service dari subtotal bersih
+    nilai_pajak = total_subtotal * (pajak_persen / 100)
+    nilai_service = total_subtotal * (service_persen / 100)
+    
+    # Total akhir = Subtotal + Pajak + Service - Diskon
+    total_akhir = total_subtotal + nilai_pajak + nilai_service - diskon_rp
+    if total_akhir < 0: 
+        total_akhir = 0 # Proteksi jika diskon lebih besar dari tagihan
 
-    st.info(f"**Subtotal:** Rp {total_subtotal:,.0f}\n\n**Total Akhir (+ Pajak & Service):** Rp {total_akhir:,.0f}")
+    # Tampilkan kotak ringkasan struk belanja
+    st.info(
+        f"**Subtotal:** Rp {total_subtotal:,.0f}\n\n"
+        f"**Diskon:** -Rp {diskon_rp:,.0f}\n\n"
+        f"**Total Akhir (+ Pajak & Service):** Rp {total_akhir:,.0f}"
+    )
 
+    # Bagi beban pajak, service, dan diskon secara proporsional ke setiap orang
     data_final = []
     for orang, subtotal_orang in tagihan_per_orang.items():
-        total_orang = subtotal_orang * faktor_tambahan
+        if total_subtotal > 0:
+            # Rasio kontribusi belanjaan orang tersebut terhadap total meja
+            proporsi = subtotal_orang / total_subtotal
+            # Orang tersebut mendapat beban pajak & potongan diskon sesuai apa yang dia makan
+            total_orang = subtotal_orang + (nilai_pajak * proporsi) + (nilai_service * proporsi) - (diskon_rp * proporsi)
+        else:
+            total_orang = 0
+            
         data_final.append({
             "Nama": orang,
-            "Total Bayar": f"Rp {round(total_orang):,}"
+            "Total Bayar": f"Rp {max(0, round(total_orang)):,}"
         })
 
     df_final = pd.DataFrame(data_final)
