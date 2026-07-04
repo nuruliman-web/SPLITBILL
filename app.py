@@ -5,8 +5,8 @@ import pandas as pd
 st.set_page_config(page_title="Split Bill Apps", page_icon="💰", layout="centered")
 
 # Judul menggunakan format Markdown standar agar adaptif mengikuti sistem (Dark/Light)
-st.title("💰 Split Bill")
-st.caption("Bagi rata tagihan bareng temen langsung dari HP!")
+st.title("💰 Split Bill Gasss...")
+st.caption("Input Aja Gak Usah Pusing Itung")
 
 st.markdown("---")
 
@@ -21,11 +21,11 @@ if "pesanan" not in st.session_state:
 # ==============================================================================
 # 1. INPUT TEMAN
 # ==============================================================================
-st.markdown("### 👥 Siapa saja yang ikut?")
+st.markdown("### 👥 Siapa Aja Yang Ikut?")
 
 teman_input = st.text_input(
-    "Masukkan nama teman (pisahkan dengan koma):", 
-    placeholder="Contoh: Budi, Andi, Cici",
+    "Masukkan nama teman lu (pisahkan dengan koma):", 
+    placeholder="Contoh: Monyet, Babi, Anjing",
     key="input_nama_teman"
 )
 
@@ -36,20 +36,20 @@ if st.button("💾 Simpan Daftar Teman", type="primary", use_container_width=Tru
         st.session_state.daftar_teman = list_nama
         st.success(f"✅ Berhasil menyimpan {len(list_nama)} teman!")
     else:
-        st.error("❌ Gagal menyimpan! Harap masukkan minimal satu nama teman.")
+        st.error("❌ Input yang bener jing!.")
 
 # Tampilan "Teman aktif" yang adaptif
 if st.session_state.daftar_teman:
-    st.info(f"🎯 **Teman aktif:** {', '.join(st.session_state.daftar_teman)}")
+    st.info(f"🎯 **Ini yang Lu Ajak?:** {', '.join(st.session_state.daftar_teman)}")
 else:
-    st.warning("⚠️ Belum ada teman yang disimpan. Ketik nama di atas lalu klik tombol Simpan.")
+    st.warning("⚠️ Input yang bener jing!")
 
 
 # ==============================================================================
 # 2. INPUT ITEM PESANAN & FIX CHECKBOX HORIZONTAL
 # ==============================================================================
 st.markdown("---")
-st.markdown("### 🍔 Detail Pesanan Mu")
+st.markdown("### 🍔 Masukin Apa Aja yg Lu Makan")
 
 with st.form("form_tambah_item", clear_on_submit=True):
     nama_item = st.text_input("Nama Makanan/Minuman:", placeholder="Contoh: Nasi Goreng")
@@ -82,7 +82,7 @@ with st.form("form_tambah_item", clear_on_submit=True):
         unsafe_allow_html=True
     )
     
-    st.markdown("<p style='font-size: 14px; margin-bottom: 5px;'><b>Dipesan oleh:</b></p>", unsafe_allow_html=True)
+    st.markdown("<p style='font-size: 14px; margin-bottom: 5px;'><b>Siapa Aja yang Pesen?:</b></p>", unsafe_allow_html=True)
     
     siapa_makan = []
     if st.session_state.daftar_teman:
@@ -120,7 +120,7 @@ if submit_button:
 
 # DI-FIX: Tampilan Daftar Pesanan (Auto-Theme & Muncul Detail Nama Orang)
 if st.session_state.pesanan:
-    st.markdown("#### 📝 Ini Daftar yang Kamu Beli:")
+    st.markdown("#### 📝 Ini Rekap Makan Lu, Udah Bener?")
     
     for index, p in enumerate(st.session_state.pesanan):
         with st.container(border=True):
@@ -128,7 +128,7 @@ if st.session_state.pesanan:
             st.markdown(f"**{p['item']}**")
             st.markdown(f"Rp {p['harga']:,} ||  Dipesan Oleh: {', '.join(p['dipesan_oleh'])}")
             
-            if st.button("🗑️ Hapus", key=f"hapus_{index}", type="secondary", use_container_width=True):
+            if st.button("Hapus", key=f"hapus_{index}", type="secondary", use_container_width=True):
                 st.session_state.pesanan.pop(index)
                 st.rerun()
                 
@@ -142,7 +142,7 @@ if st.session_state.pesanan:
 # 3. BIAYA TAMBAHAN
 # ==============================================================================
 st.markdown("---")
-st.markdown("### 📊 Ada Pajak-Pajak Gak?")
+st.markdown("### 📊 Ada Pajak Apa Diskon Gak?")
 col_tax, col_service = st.columns(2)
 with col_tax:
     pajak_persen = st.number_input("Pajak (%)", min_value=0.0, max_value=100.0, value=10.0, step=0.5)
