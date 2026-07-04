@@ -21,14 +21,13 @@ if "pesanan" not in st.session_state:
 # ==============================================================================
 # 1. INPUT TEMAN
 # ==============================================================================
-# Menggunakan HTML Font-size agar ukuran teks tidak kebesaran di HP (1 baris)
 st.markdown("<h4 style='margin:0;'>👥 Siapa Aja Yang Ikut?</h4>", unsafe_allow_html=True)
 
 teman_input = st.text_input(
     "Masukkan nama teman lu (pisahkan dengan koma):", 
     placeholder="Contoh: Monyet, Babi, Anjing",
     key="input_nama_teman",
-    label_visibility="collapsed" # Menyembunyikan label bawaan agar hemat tempat
+    label_visibility="collapsed"
 )
 
 if st.button("💾 Simpan Daftar Teman", type="primary", use_container_width=True):
@@ -56,7 +55,6 @@ st.markdown("<h4 style='margin:0;'>🍔 Masukin Apa Aja yg Lu Makan</h4>", unsaf
 with st.form("form_tambah_item", clear_on_submit=True):
     nama_item = st.text_input("Nama Makanan/Minuman:", placeholder="Contoh: Nasi Goreng")
     
-    # Keyboard HP angka saja (step=1)
     harga_item = st.number_input(
         "Harga (Rp):", 
         min_value=0, 
@@ -90,7 +88,6 @@ with st.form("form_tambah_item", clear_on_submit=True):
     if st.session_state.daftar_teman:
         st.markdown('<div class="checkbox-group">', unsafe_allow_html=True)
         
-        # Buat checkbox untuk masing-masing nama teman
         for nama in st.session_state.daftar_teman:
             if st.checkbox(nama, key=f"cb_{nama}"):
                 siapa_makan.append(nama)
@@ -139,28 +136,33 @@ if st.session_state.pesanan:
 
 
 # ==============================================================================
-# 3. BIAYA TAMBAHAN & DISKON (Dipecah Jadi 3 Kolom)
+# 3. BIAYA TAMBAHAN & DISKON (DI-FIX AUTO CLEAR DI SINI)
 # ==============================================================================
 st.markdown("---")
-# Ukuran font dikecilkan sedikit agar muat 1 baris di HP
 st.markdown("<h4 style='margin:0;'>📊 Ada Pajak Apa Diskon Gak?</h4>", unsafe_allow_html=True)
 
-# Memisahkan input menjadi 3 kolom agar rapi menyamping di tablet/HP
 col_tax, col_service, col_discount = st.columns(3)
 with col_tax:
     pajak_persen = st.number_input("Pajak (%)", min_value=0.0, max_value=100.0, value=10.0, step=0.5)
 with col_service:
     service_persen = st.number_input("Service (%)", min_value=0.0, max_value=100.0, value=5.0, step=0.5)
 with col_discount:
-    # Menggunakan nominal Rupiah langsung karena lebih sering ditemui di nota diskon makan
-    diskon_rp = st.number_input("Diskon (Rp)", min_value=0, value=0, step=1000)
+    # DI-FIX: Diberi value=None dan placeholder agar langsung bersih/kosong saat diklik di HP
+    diskon_input = st.number_input(
+        "Diskon (Rp)", 
+        min_value=0, 
+        value=None, 
+        step=1000, 
+        placeholder="0"
+    )
+    # Jika isinya kosong/None, otomatis dianggap Rp 0 oleh sistem hitung
+    diskon_rp = int(diskon_input) if diskon_input is not None else 0
 
 
 # ==============================================================================
-# 4. PERHITUNGAN AKHIR
+# 4. PERHITUNGAN AKHIR (DI-FIX STRUK GABUNGAN TOTAL)
 # ==============================================================================
 st.markdown("---")
-# Judul ini dipastikan berukuran pas di HP agar tidak patah ke bawah
 st.markdown("<h4 style='margin:0;'>🧾 Bayarnya Segini Ya Cek Nama Lu!</h4>", unsafe_allow_html=True)
 st.write("")
 
@@ -168,7 +170,7 @@ if st.session_state.daftar_teman and st.session_state.pesanan:
     tagihan_per_orang = {nama: 0.0 for nama in st.session_state.daftar_teman}
     total_subtotal = 0
 
-    # Menghitung subtotal dasar dari pesanan makanan
+    # Hitung harga dasar makanan
     for p in st.session_state.pesanan:
         harga_per_orang = p["harga"] / len(p["dipesan_oleh"])
         total_subtotal += p["harga"]
@@ -176,30 +178,32 @@ if st.session_state.daftar_teman and st.session_state.pesanan:
             if orang in tagihan_per_orang:
                 tagihan_per_orang[orang] += harga_per_orang
 
-    # Hitung nilai pajak dan service dari subtotal bersih
-    nilai_pajak = total_subtotal * (pajak_persen / 100)
-    nilai_service = total_subtotal * (service_persen / 100)
+    # Hitung nilai nominal Rp dari pajak dan service charge
+    nilai_pajak_rp = total_subtotal * (pajak_persen / 100)
+    nilai_service_rp = total_subtotal * (service_persen / 100)
     
-    # Total akhir = Subtotal + Pajak + Service - Diskon
-    total_akhir = total_subtotal + nilai_pajak + nilai_service - diskon_rp
+    # Total gabungan matematika utuh
+    total_akhir = total_subtotal + nilai_pajak_rp + nilai_service_rp - diskon_rp
     if total_akhir < 0: 
-        total_akhir = 0 # Proteksi jika diskon lebih besar dari tagihan
+        total_akhir = 0
 
-    # Tampilkan kotak ringkasan struk belanja
+    # DI-FIX: Menampilkan Gabungan Rincian Pajak, Service, Makanan, dan Diskon di Struk
     st.info(
-        f"**Subtotal:** Rp {total_subtotal:,.0f}\n\n"
-        f"**Diskon:** -Rp {diskon_rp:,.0f}\n\n"
-        f"**Total Akhir (+ Pajak & Service):** Rp {total_akhir:,.0f}"
+        f"🍔 **Harga Makanan (Subtotal):** Rp {total_subtotal:,.0f}\n\n"
+        f"📌 **Pajak ({pajak_persen}%):** Rp {nilai_pajak_rp:,.0f}\n\n"
+        f"⚡ **Service Charge ({service_persen}%):** Rp {nilai_service_rp:,.0f}\n\n"
+        f"🎈 **Diskon Nota:** -Rp {diskon_rp:,.0f}\n"
+        f"────────────────────────\n"
+        f"💵 **TOTAL AKHIR GABUNGAN:** Rp {total_akhir:,.0f}"
     )
 
-    # Bagi beban pajak, service, dan diskon secara proporsional ke setiap orang
+    # Distribusi hitungan adil per orang
     data_final = []
     for orang, subtotal_orang in tagihan_per_orang.items():
         if total_subtotal > 0:
-            # Rasio kontribusi belanjaan orang tersebut terhadap total meja
             proporsi = subtotal_orang / total_subtotal
-            # Orang tersebut mendapat beban pajak & potongan diskon sesuai apa yang dia makan
-            total_orang = subtotal_orang + (nilai_pajak * proporsi) + (nilai_service * proporsi) - (diskon_rp * proporsi)
+            # Tiap orang nanggung pajak/service dan dapet potongan diskon sesuai proporsi makannya sendiri
+            total_orang = subtotal_orang + (nilai_pajak_rp * proporsi) + (nilai_service_rp * proporsi) - (diskon_rp * proporsi)
         else:
             total_orang = 0
             
