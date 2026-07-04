@@ -192,7 +192,7 @@ if st.session_state.daftar_teman and st.session_state.pesanan:
         f"🍔 **Harga Makanan (Subtotal):** Rp {total_subtotal:,.0f}\n\n"
         f"📌 **Pajak ({pajak_persen}%):** Rp {nilai_pajak_rp:,.0f}\n\n"
         f"⚡ **Service Charge ({service_persen}%):** Rp {nilai_service_rp:,.0f}\n\n"
-        f"🎈 **Diskon Nota:** -Rp {diskon_rp:,.0f}\n"
+        f"🎈 **Diskon Nota:** -Rp {diskon_rp:,.0f}\n\n"
         f"💵 **TOTAL AKHIR GABUNGAN:** Rp {total_akhir:,.0f}"
     )
 
