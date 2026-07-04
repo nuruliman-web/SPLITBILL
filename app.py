@@ -47,7 +47,7 @@ else:
 
 
 # ==============================================================================
-# 2. INPUT ITEM PESANAN (Checkbox Horizontal & Auto-Wrap ke Bawah)
+# 2. INPUT ITEM PESANAN (Checkbox Horizontal & Auto-Wrap FIX)
 # ==============================================================================
 st.markdown("---")
 st.markdown("### 🍔 2. Detail Pesanan")
@@ -63,34 +63,35 @@ with st.form("form_tambah_item", clear_on_submit=True):
         placeholder="Masukkan harga angka saja"
     )
     
-    # --- PENGGANTI: Checkbox Fleksibel Kanan-Bawah ---
+    # --- FIX: Paksa semua elemen checkbox di dalam form ini agar berjejer ke samping ---
+    st.markdown(
+        """
+        <style>
+        /* Mencari pembungkus grup checkbox bawaan streamlit */
+        [data-testid="stForm"] .stCheckbox {
+            display: inline-block !important;
+            width: auto !important;
+            margin-right: 15px !important;
+            margin-bottom: 5px !important;
+        }
+        /* Membuat wadah penampungnya agar otomatis turun baris jika kepenuhan */
+        .checkbox-group {
+            display: block;
+            width: 100%;
+        }
+        </style>
+        """, 
+        unsafe_allow_html=True
+    )
+    
     st.markdown("<p style='font-size: 14px; margin-bottom: 5px;'><b>Dipesan oleh:</b></p>", unsafe_allow_html=True)
     
     siapa_makan = []
     if st.session_state.daftar_teman:
-        # Trik HTML & CSS: Membuat kontainer flexbox agar item otomatis menyamping & turun jika penuh
-        st.markdown(
-            """
-            <style>
-            .flex-container {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 15px;
-                padding: 5px 0px;
-            }
-            .flex-item {
-                display: inline-block;
-            }
-            </style>
-            """, 
-            unsafe_allow_html=True
-        )
-        
-        # Mulai membungkus checkbox di dalam wadah flexbox kustom
-        st.markdown('<div class="flex-container">', unsafe_allow_html=True)
+        # Dibungkus dalam class agar CSS di atas berjalan sempurna
+        st.markdown('<div class="checkbox-group">', unsafe_allow_html=True)
         
         for nama in st.session_state.daftar_teman:
-            # Menggunakan st.checkbox standar tapi ditaruh di tempat yang rapat
             if st.checkbox(nama, key=f"cb_{nama}"):
                 siapa_makan.append(nama)
                 
@@ -118,7 +119,6 @@ if submit_button:
             "patungan": siapa_makan
         })
         st.rerun()
-
 # ==============================================================================
 # 3. BIAYA TAMBAHAN
 # ==============================================================================
