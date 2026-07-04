@@ -126,7 +126,7 @@ if st.session_state.pesanan:
         with st.container(border=True):
             # Menggunakan Markdown standar agar mendukung Dark Mode / Light Mode otomatis
             st.markdown(f"**{p['item']}**")
-            st.markdown(f"Rp {p['harga']:,} • Oleh: {', '.join(p['dipesan_oleh'])}")
+            st.markdown(f"Rp {p['harga']:,} ||  Dipesan Oleh: {', '.join(p['dipesan_oleh'])}")
             
             if st.button("🗑️ Hapus", key=f"hapus_{index}", type="secondary", use_container_width=True):
                 st.session_state.pesanan.pop(index)
