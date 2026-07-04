@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>💰 SplitBill</title>
+  <style>
+    /* RESET */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f4f6f9;
+      padding: 16px;
+      max-width: 500px;
+      margin: 0 auto;
+      color: #1e293b;
+    }
+
+    /* HEADER */
+    .header {
+      background: linear-gradient(135deg, #1a237e, #0d47a1);
+      color: white;
+      padding: 20px 16px;
+      border-radius: 16px;
+      text-align: center;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 12px rgba(26, 35, 126, 0.25);
+    }
+    .header h1 {
+      font-size: 24px;
+      font-weight: 700;
+    }
+    .header p {
+      font-size: 13px;
+      opacity: 0.85;
+      margin-top: 4px;
+    }
+
+    /* MENU */
+    .menu {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .menu-btn {
+      background: white;
+      border: none;
+      border-radius: 12px;
+      padding: 12px 4px;
+      text-align: center;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+      cursor: pointer;
+      transition: 0.15s;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      color: #1a237e;
+    }
+    .menu-btn:active {
+      transform: scale(0.96);
+      background: #e8eaf6;
+    }
+    .menu-btn .icon {
+      font-size: 24px;
+      display: block;
+      margin-bottom: 2px;
+    }
+    .menu-btn.active {
+      background: #1a237e;
+      color: white;
+    }
+
+    /* PAGE */
+    .page {
+      display: none;
+      background: white;
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      animation: fade 0.2s ease;
+    }
+    .page.active {
+      display: block;
+    }
+
+    @keyframes fade {
+      0% {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .page-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 14px;
+      color: #1a237e;
+    }
+
+    /* FORM */
+    .form-group {
+      margin-bottom: 12px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #475569;
+      margin-bottom: 4px;
+    }
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      font-size: 14px;
+      font-family: inherit;
+      background: #f8fafc;
+      transition: 0.15s;
+    }
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: #1a237e;
+      box-shadow: 0 0 0 3px rgba(26, 35, 126, 0.15);
+    }
+
+    /* ITEM ROW */
+    .item-row {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .item-row input {
+      flex: 1;
+      padding: 8px 10px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 13px;
+      background: #f8fafc;
+      min-width: 0;
+    }
+    .item-row input[type="number"] {
+      max-width: 80px;
+      flex: 0.5;
+    }
+    .item-row select {
+      flex: 0.7;
+      padding: 8px 10px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 13px;
+      background: #f8fafc;
+    }
+    .item-row .btn-remove {
+      background: #fee2e2;
+      border: none;
+      border-radius: 8px;
+      padding: 6px 10px;
+      color: #b91c1c;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    .item-row .btn-remove:active {
+      background: #fecaca;
+    }
+
+    .btn-add-item {
+      background: #e8eaf6;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-weight: 600;
+      color: #1a237e;
+      cursor: pointer;
+      font-size: 13px;
+      margin-top: 4px;
+    }
+    .btn-add-item:active {
+      background: #c5cae9;
+    }
+
+    /* BUTTONS */
+    .btn {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 15px;
+      cursor: pointer;
+      transition: 0.15s;
+      width: 100%;
+      font-family: inherit;
+    }
+    .btn:active {
+      transform: scale(0.97);
+    }
+    .btn-primary {
+      background: #1a237e;
+      color: white;
+    }
+    .btn-primary:active {
+      background: #0d1445;
+    }
+    .btn-success {
+      background: #2e7d32;
+      color: white;
+    }
+    .btn-success:active {
+      background: #1b5e20;
+    }
+    .btn-danger {
+      background: #c62828;
+      color: white;
+    }
+    .btn-danger:active {
+      background: #8e0000;
+    }
+    .btn-outline {
+      background: transparent;
+      border: 2px solid #d1d5db;
+      color: #475569;
+    }
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 12px;
+      width: auto;
+    }
+    .mt-8 {
+      margin-top: 8px;
+    }
+    .mt-12 {
+      margin-top: 12px;
+    }
+    .mb-8 {
+      margin-bottom: 8px;
+    }
+
+    /* RESULT */
+    .result-box {
+      background: #e8f5e9;
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 14px;
+      display: none;
+    }
+    .result-box.show {
+      display: block;
+    }
+    .result-box table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+      font-size: 14px;
+    }
+    .result-box th {
+      background: #1a237e;
+      color: white;
+      padding: 8px 10px;
+      text-align: left;
+      border-radius: 6px 6px 0 0;
+    }
+    .result-box td {
+      padding: 8px 10px;
+      border-bottom: 1px solid #d1d5db;
+    }
+    .result-box .grand-total {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1a237e;
+      margin-top: 8px;
+    }
+
+    /* ORANG LIST */
+    .orang-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .orang-item:last-child {
+      border-bottom: none;
+    }
+    .orang-item .nama {
+      font-weight: 600;
+      font-size: 15px;
+    }
+    .orang-item .btn-hapus {
+      background: #fee2e2;
+      border: none;
+      border-radius: 8px;
+      padding: 4px 12px;
+      color: #b91c1c;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .orang-item .btn-hapus:active {
+      background: #fecaca;
+    }
+
+    /* RIWAYAT */
+    .riwayat-item {
+      background: #f8fafc;
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 8px;
+      border: 1px solid #e2e8f0;
+    }
+    .riwayat-item .header-riwayat {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .riwayat-item .header-riwayat .tempat {
+      font-weight: 700;
+      font-size: 15px;
+    }
+    .riwayat-item .header-riwayat .total {
+      font-weight: 700;
+      color: #1a237e;
+    }
+    .riwayat-item .detail-riwayat {
+      margin-top: 6px;
+      font-size: 13px;
+      color: #475569;
+      padding-left: 8px;
+    }
+    .riwayat-item .detail-riwayat span {
+      display: block;
+      padding: 2px 0;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 30px 10px;
+      color: #94a3b8;
+      font-size: 14px;
+    }
+    .empty-state .big-icon {
+      font-size: 48px;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .flex-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .flex-row .grow {
+      flex: 1;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .badge-selesai {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+    .badge-proses {
+      background: #fff3e0;
+      color: #e65100;
+    }
+
+    /* FOOTER */
+    .footer {
+      text-align: center;
+      font-size: 11px;
+      color: #94a3b8;
+      margin-top: 16px;
+      padding: 8px 0;
+    }
+
+    /* RESPONSIF */
+    @media (max-width: 400px) {
+      .item-row {
+        flex-wrap: wrap;
+      }
+      .item-row input[type="number"] {
+        max-width: 70px;
+        flex: 0.4;
+      }
+      .item-row select {
+        flex: 0.6;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- =========================== -->
+  <!-- HEADER -->
+  <!-- =========================== -->
+  <div class="header">
+    <h1>💰 SplitBill</h1>
+    <p>Bagi tagihan bareng teman & keluarga</p>
+  </div>
+
+  <!-- =========================== -->
+  <!-- MENU -->
+  <!-- =========================== -->
+  <div class="menu">
+    <button class="menu-btn active" data-page="split">
+      <span class="icon">🧾</span>
+      Split
+    </button>
+    <button class="menu-btn" data-page="orang">
+      <span class="icon">👥</span>
+      Orang
+    </button>
+    <button class="menu-btn" data-page="riwayat">
+      <span class="icon">📋</span>
+      Riwayat
+    </button>
+  </div>
+
+  <!-- =========================== -->
+  <!-- PAGE: SPLIT BILL -->
+  <!-- =========================== -->
+  <div id="page-split" class="page active">
+
+    <div class="page-title">🧾 Split Bill Baru</div>
+
+    <!-- Tempat & Tanggal -->
+    <div class="form-group">
+      <label>📍 Tempat</label>
+      <input type="text" id="tempat" placeholder="Warung Bakso, Restoran..." />
+    </div>
+    <div class="form-group">
+      <label>📅 Tanggal</label>
+      <input type="date" id="tanggal" />
+    </div>
+
+    <!-- Items -->
+    <div class="form-group">
+      <label>📋 Item-item</label>
+      <div id="itemsContainer">
+        <div class="item-row">
+          <input type="text" placeholder="Nama" class="item-name" />
+          <input type="number" placeholder="Harga" class="item-price" />
+          <select class="item-owner"></select>
+          <button class="btn-remove" onclick="removeItem(this)">✕</button>
+        </div>
+      </div>
+      <button class="btn-add-item" onclick="addItem()">➕ Tambah Item</button>
+    </div>
+
+    <!-- Pajak & Service -->
+    <div class="flex-row">
+      <div class="form-group grow">
+        <label>💰 Pajak (%)</label>
+        <input type="number" id="tax" value="11" />
+      </div>
+      <div class="form-group grow">
+        <label>💰 Service</label>
+        <input type="number" id="service" value="0" />
+      </div>
+    </div>
+
+    <!-- Tombol Hitung -->
+    <button class="btn btn-primary" onclick="hitungSplit()">📊 Hitung Split</button>
+
+    <!-- Result -->
+    <div id="resultBox" class="result-box">
+      <div id="resultContent"></div>
+      <button class="btn btn-success mt-8" onclick="simpanTransaksi()">💾 Simpan</button>
+    </div>
+
+  </div>
+
+  <!-- =========================== -->
+  <!-- PAGE: KELOLA ORANG -->
+  <!-- =========================== -->
+  <div id="page-orang" class="page">
+
+    <div class="page-title">👥 Kelola Orang</div>
+
+    <div class="flex-row">
+      <input type="text" id="namaOrangBaru" placeholder="Nama orang..." class="grow" style="padding:10px 12px;border:1px solid #d1d5db;border-radius:10px;font-size:14px;" />
+      <button class="btn btn-primary btn-sm" onclick="tambahOrang()">➕</button>
+    </div>
+
+    <div id="daftarOrang" style="margin-top:12px;">
+      <div class="empty-state">
+        <span class="big-icon">👤</span>
+        Belum ada orang
+      </div>
+    </div>
+
+  </div>
+
+  <!-- =========================== -->
+  <!-- PAGE: RIWAYAT -->
+  <!-- =========================== -->
+  <div id="page-riwayat" class="page">
+
+    <div class="page-title">📋 Riwayat</div>
+
+    <div id="daftarRiwayat">
+      <div class="empty-state">
+        <span class="big-icon">📭</span>
+        Belum ada transaksi
+      </div>
+    </div>
+
+  </div>
+
+  <!-- =========================== -->
+  <!-- FOOTER -->
+  <!-- =========================== -->
+  <div class="footer">© 2026 SplitBill</div>
+
+
+  <!-- =========================== -->
+  <!-- SCRIPT -->
+  <!-- =========================== -->
+  <script>
+    // ============================================================
+    // DATA (di memori)
+    // ============================================================
+
+    let data = {
+      orang: [
+        { id: 1, nama: 'Adek' },
+        { id: 2, nama: 'Kamu' },
+        { id: 3, nama: 'Teman' }
+      ],
+      transaksi: [], // { id, tanggal, tempat, tax, service, total, items: [{orang_id, item, harga}] }
+      nextIdOrang: 4,
+      nextIdTransaksi: 1
+    };
+
+    // ============================================================
+    // DOM REFS
+    // ============================================================
+
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => document.querySelectorAll(sel);
+
+    const itemsContainer = $('#itemsContainer');
+    const resultBox = $('#resultBox');
+    const resultContent = $('#resultContent');
+    const daftarOrang = $('#daftarOrang');
+    const daftarRiwayat = $('#daftarRiwayat');
+
+    // ============================================================
+    // NAVIGASI
+    // ============================================================
+
+    document.querySelectorAll('.menu-btn').forEach((btn) => {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        const page = this.dataset.page;
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById('page-' + page).classList.add('active');
+        if (page === 'orang') renderOrang();
+        if (page === 'riwayat') renderRiwayat();
+        if (page === 'split') resetSplitForm();
+      });
+    });
+
+    // ============================================================
+    // ORANG
+    // ============================================================
+
+    function renderOrang() {
+      if (data.orang.length === 0) {
+        daftarOrang.innerHTML = `
+          <div class="empty-state">
+            <span class="big-icon">👤</span>
+            Belum ada orang
+          </div>
+        `;
+        return;
+      }
+      let html = '';
+      data.orang.forEach((o) => {
+        html += `
+          <div class="orang-item">
+            <span class="nama">👤 ${o.nama}</span>
+            <button class="btn-hapus" onclick="hapusOrang(${o.id})">Hapus</button>
+          </div>
+        `;
+      });
+      daftarOrang.innerHTML = html;
+    }
+
+    function tambahOrang() {
+      const nama = document.getElementById('namaOrangBaru').value.trim();
+      if (!nama) {
+        alert('Nama tidak boleh kosong!');
+        return;
+      }
+      data.orang.push({ id: data.nextIdOrang++, nama });
+      document.getElementById('namaOrangBaru').value = '';
+      renderOrang();
+      updateOwnerDropdowns();
+    }
+
+    function hapusOrang(id) {
+      if (!confirm('Yakin hapus orang ini?')) return;
+      data.orang = data.orang.filter(o => o.id !== id);
+      renderOrang();
+      updateOwnerDropdowns();
+    }
+
+    function getOrangOptions() {
+      return data.orang.map(o => `<option value="${o.id}">${o.nama}</option>`).join('');
+    }
+
+    function updateOwnerDropdowns() {
+      const options = getOrangOptions();
+      document.querySelectorAll('.item-owner').forEach((sel) => {
+        const current = sel.value;
+        sel.innerHTML = `<option value="">-</option>${options}`;
+        if (current) sel.value = current;
+      });
+    }
+
+    // ============================================================
+    // SPLIT BILL
+    // ============================================================
+
+    function resetSplitForm() {
+      // Set tanggal default
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('tanggal').value = today;
+      // Reset result
+      resultBox.classList.remove('show');
+      resultContent.innerHTML = '';
+    }
+
+    function addItem() {
+      const row = document.createElement('div');
+      row.className = 'item-row';
+      row.innerHTML = `
+        <input type="text" placeholder="Nama" class="item-name" />
+        <input type="number" placeholder="Harga" class="item-price" />
+        <select class="item-owner"><option value="">-</option>${getOrangOptions()}</select>
+        <button class="btn-remove" onclick="removeItem(this)">✕</button>
+      `;
+      itemsContainer.appendChild(row);
+    }
+
+    function removeItem(btn) {
+      const container = document.getElementById('itemsContainer');
+      if (container.children.length > 1) {
+        btn.parentElement.remove();
+      } else {
+        alert('Minimal 1 item!');
+      }
+    }
+
+    function hitungSplit() {
+      // Ambil item
+      const itemRows = document.querySelectorAll('.item-row');
+      const items = [];
+      let totalHarga = 0;
+
+      itemRows.forEach((row) => {
+        const name = row.querySelector('.item-name').value.trim();
+        const price = parseFloat(row.querySelector('.item-price').value) || 0;
+        const owner = row.querySelector('.item-owner').value;
+
+        if (name && price > 0) {
+          if (!owner) {
+            alert('Item "' + name + '" belum dipilih pemiliknya!');
+            return;
+          }
+          items.push({ nama: name, harga: price, orang_id: parseInt(owner) });
+          totalHarga += price;
+        }
+      });
+
+      if (items.length === 0) {
+        alert('Minimal 1 item dengan harga > 0!');
+        return;
+      }
+
+      const tax = parseFloat(document.getElementById('tax').value) || 0;
+      const service = parseFloat(document.getElementById('service').value) || 0;
+      const totalTax = (totalHarga * tax) / 100;
+      const grandTotal = totalHarga + totalTax + service;
+
+      // Hitung per orang
+      const perOrang = {};
+      items.forEach((item) => {
+        const nama = data.orang.find(o => o.id === item.orang_id);
+        const namaOrang = nama ? nama.nama : 'Unknown';
+        perOrang[namaOrang] = (perOrang[namaOrang] || 0) + item.harga;
+      });
+
+      // Build result HTML
+      let html = `
+        <p><strong>Total Harga:</strong> Rp ${totalHarga.toLocaleString('id-ID')}</p>
+        <p><strong>Tax (${tax}%):</strong> Rp ${totalTax.toLocaleString('id-ID')}</p>
+        <p><strong>Service:</strong> Rp ${service.toLocaleString('id-ID')}</p>
+        <p class="grand-total">Grand Total: Rp ${grandTotal.toLocaleString('id-ID')}</p>
+        <table>
+          <tr><th>Nama</th><th>Total</th></tr>
+      `;
+
+      for (const nama in perOrang) {
+        const proporsi = perOrang[nama] / totalHarga;
+        const totalOrang = perOrang[nama] + (totalTax * proporsi) + (service * proporsi);
+        html += `<tr><td>${nama}</td><td>Rp ${totalOrang.toLocaleString('id-ID')}</td></tr>`;
+      }
+      html += `</table>`;
+
+      resultContent.innerHTML = html;
+      resultBox.classList.add('show');
+
+      // Simpan data untuk disimpan
+      window._lastSplit = {
+        items: items,
+        totalHarga: totalHarga,
+        totalTax: totalTax,
+        service: service,
+        grandTotal: grandTotal
+      };
+    }
+
+    function simpanTransaksi() {
+      const split = window._lastSplit;
+      if (!split) {
+        alert('Hitung split dulu!');
+        return;
+      }
+
+      const tempat = document.getElementById('tempat').value.trim();
+      if (!tempat) {
+        alert('Masukkan nama tempat!');
+        return;
+      }
+
+      const tanggal = document.getElementById('tanggal').value || new Date().toISOString().split('T')[0];
+      const tax = parseFloat(document.getElementById('tax').value) || 0;
+      const service = parseFloat(document.getElementById('service').value) || 0;
+
+      const itemsData = split.items.map((item) => {
+        const proporsi = item.harga / split.totalHarga;
+        return {
+          orang_id: item.orang_id,
+          item: item.nama,
+          harga: item.harga,
+          total_per_orang: item.harga + (split.totalTax * proporsi) + (service * proporsi)
+        };
+      });
+
+      data.transaksi.push({
+        id: data.nextIdTransaksi++,
+        tanggal: tanggal,
+        tempat: tempat,
+        tax: tax,
+        service: service,
+        total: split.grandTotal,
+        items: itemsData
+      });
+
+      // Reset form
+      alert('✅ Transaksi berhasil disimpan!');
+      document.getElementById('tempat').value = '';
+      document.querySelectorAll('.item-name').forEach(el => el.value = '');
+      document.querySelectorAll('.item-price').forEach(el => el.value = '');
+      resultBox.classList.remove('show');
+      resultContent.innerHTML = '';
+      window._lastSplit = null;
+
+      // Update riwayat
+      renderRiwayat();
+    }
+
+    // ============================================================
+    // RIWAYAT
+    // ============================================================
+
+    function renderRiwayat() {
+      if (data.transaksi.length === 0) {
+        daftarRiwayat.innerHTML = `
+          <div class="empty-state">
+            <span class="big-icon">📭</span>
+            Belum ada transaksi
+          </div>
+        `;
+        return;
+      }
+
+      let html = '';
+      // Tampilkan dari yang terbaru
+      const sorted = [...data.transaksi].reverse();
+      sorted.forEach((t) => {
+        // Cari nama orang
+        const itemsHtml = t.items.map((item) => {
+          const nama = data.orang.find(o => o.id === item.orang_id);
+          const namaOrang = nama ? nama.nama : 'Unknown';
+          return `<span>🛒 ${item.item} - Rp ${(item.harga || 0).toLocaleString('id-ID')} (${namaOrang})</span>`;
+        }).join('');
+
+        html += `
+          <div class="riwayat-item">
+            <div class="header-riwayat">
+              <span class="tempat">📅 ${t.tanggal} - ${t.tempat}</span>
+              <span class="total">Rp ${(t.total || 0).toLocaleString('id-ID')}</span>
+            </div>
+            <div style="font-size:12px;color:#94a3b8;margin-bottom:4px;">
+              Tax: ${t.tax}% | Service: Rp ${(t.service || 0).toLocaleString('id-ID')}
+            </div>
+            <div class="detail-riwayat">
+              ${itemsHtml}
+            </div>
+          </div>
+        `;
+      });
+
+      daftarRiwayat.innerHTML = html;
+    }
+
+    // ============================================================
+    // INIT
+    // ============================================================
+
+    function init() {
+      // Set tanggal default
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('tanggal').value = today;
+      // Render orang
+      renderOrang();
+      // Update dropdown
+      updateOwnerDropdowns();
+      // Render riwayat
+      renderRiwayat();
+    }
+
+    init();
+
+    // ============================================================
+    // RESIZE HANDLER untuk mobile
+    // ============================================================
+    // Biarkan saja, udah responsive
+    // ============================================================
+
+    console.log('💰 SplitBill siap dipakai!');
+  </script>
+
+</body>
+</html>
