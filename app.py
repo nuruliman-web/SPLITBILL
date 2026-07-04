@@ -47,7 +47,7 @@ else:
 
 
 # ==============================================================================
-# 2. INPUT ITEM PESANAN
+# 2. INPUT ITEM PESANAN (Menggunakan Checkbox Pengganti Dropdown)
 # ==============================================================================
 st.markdown("---")
 st.markdown("### 🍔 2. Detail Pesanan")
@@ -63,11 +63,23 @@ with st.form("form_tambah_item", clear_on_submit=True):
         placeholder="Masukkan harga angka saja"
     )
     
-    siapa_makan = st.multiselect(
-        "Dipesan oleh:", 
-        options=st.session_state.daftar_teman
-    )
+    # --- PENGGANTI DROPDOWN: Checkbox Sesuai Nama Orang ---
+    st.markdown("<p style='font-size: 14px; margin-bottom: 5px;'><b>Dipesan oleh:</b></p>", unsafe_allow_html=True)
     
+    siapa_makan = []
+    if st.session_state.daftar_teman:
+        # Membuat baris horizontal untuk nama-nama teman di HP
+        cols = st.columns(len(st.session_state.daftar_teman))
+        for idx, nama in enumerate(st.session_state.daftar_teman):
+            with cols[idx]:
+                # Jika dicentang, nama teman akan dimasukkan ke dalam list siapa_makan
+                if st.checkbox(nama, key=f"cb_{nama}"):
+                    siapa_makan.append(nama)
+    else:
+        st.caption("⚠️ Belum ada nama teman. Isi dulu di langkah 1 ya!")
+    # -----------------------------------------------------
+    
+    st.write("") # Spasi pemisah
     submit_button = st.form_submit_button(label="➕ Tambah Item", use_container_width=True)
 
 if submit_button:
@@ -78,7 +90,7 @@ if submit_button:
     elif harga_item is None or harga_item <= 0:
         st.error("❌ Harga harus lebih dari Rp 0!")
     elif not siapa_makan:
-        st.error("❌ Pilih minimal satu orang!")
+        st.error("❌ Pilih minimal satu orang yang memesan!")
     else:
         st.session_state.pesanan.append({
             "item": nama_item,
@@ -86,27 +98,6 @@ if submit_button:
             "patungan": siapa_makan
         })
         st.rerun()
-
-# Perbaikan bagian "Daftar Pesanan Saat Ini" agar mendukung Dark Mode HP
-if st.session_state.pesanan:
-    st.markdown("#### 📝 Daftar Pesanan Saat Ini:")
-    
-    for index, p in enumerate(st.session_state.pesanan):
-        # Menggunakan wadah container bawaan Streamlit tanpa kode warna HTML kustom
-        with st.container(border=True):
-            # Murni menggunakan teks Markdown standar agar otomatis berubah putih saat HP Dark Mode
-            st.markdown(f"**{p['item']}**")
-            st.markdown(f"Rp {p['harga']:,} • Oleh: {', '.join(p['patungan'])}")
-            
-            if st.button("🗑️ Hapus", key=f"hapus_{index}", type="secondary", use_container_width=True):
-                st.session_state.pesanan.pop(index)
-                st.rerun()
-                
-    st.write("") 
-    if st.button("🚨 Reset Semua Pesanan", type="secondary", use_container_width=True):
-        st.session_state.pesanan = []
-        st.rerun()
-
 
 # ==============================================================================
 # 3. BIAYA TAMBAHAN
