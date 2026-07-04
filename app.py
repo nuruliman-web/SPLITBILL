@@ -11,21 +11,22 @@ st.set_page_config(
 )
 
 # ==============================================================================
-# CSS KUSTOM biar enak dilihat
+# CSS KUSTOM (FIX: Support Dark Mode & Light Mode Otomatis)
 # ==============================================================================
 st.markdown("""
 <style>
+    /* Menggunakan background semi transparan agar menyatu dengan tema dark/light HP */
     div[data-testid="stForm"] {
-        background: white;
+        background: rgba(128, 128, 128, 0.05);
         padding: 20px;
         border-radius: 16px;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        border: 1px solid rgba(128, 128, 128, 0.15);
     }
     div[data-testid="stContainer"] {
-        background: white;
+        background: rgba(128, 128, 128, 0.03);
         border-radius: 12px;
         padding: 12px 16px;
-        border: 1px solid #f1f5f9;
+        border: 1px solid rgba(128, 128, 128, 0.1);
     }
     [data-testid="stForm"] .stCheckbox {
         display: inline-block !important;
@@ -71,7 +72,8 @@ if "pesanan" not in st.session_state:
 # ==============================================================================
 # 1. DAFTAR TEMAN
 # ==============================================================================
-st.markdown("### 👥 Yang Ikut Makan")
+st.markdown("<h4 style='margin:0;'>👥 Yang Ikut Makan</h4>", unsafe_allow_html=True)
+st.write("")
 
 teman_input = st.text_input(
     "Nama-namanya, pisahin pake koma ya",
@@ -97,7 +99,8 @@ else:
 # 2. PESANAN
 # ==============================================================================
 st.divider()
-st.markdown("### 🍽️ Pesanan Apa Aja")
+st.markdown("<h4 style='margin:0;'>🍽️ Pesanan Apa Aja</h4>", unsafe_allow_html=True)
+st.write("")
 
 with st.form("form_tambah_item", clear_on_submit=True):
     nama_item = st.text_input("Nama menu", placeholder="nasgor, es teh, pisang goreng")
@@ -109,22 +112,6 @@ with st.form("form_tambah_item", clear_on_submit=True):
         value=None,
         placeholder="masukkan angka"
     )
-
-    # CSS buat checkbox ke samping
-    st.markdown("""
-    <style>
-    [data-testid="stForm"] .stCheckbox {
-        display: inline-block !important;
-        width: auto !important;
-        margin-right: 16px !important;
-        margin-bottom: 4px !important;
-    }
-    .checkbox-group {
-        display: block;
-        width: 100%;
-    }
-    </style>
-    """, unsafe_allow_html=True)
 
     st.markdown("<p style='font-size: 14px; margin-bottom: 4px;'><b>Siapa yang pesan ini?</b></p>", unsafe_allow_html=True)
 
@@ -180,7 +167,8 @@ if st.session_state.pesanan:
 # 3. PAJAK, SERVICE, DISKON
 # ==============================================================================
 st.divider()
-st.markdown("### 📊 Tambahan")
+st.markdown("<h4 style='margin:0;'>📊 Tambahan</h4>", unsafe_allow_html=True)
+st.write("")
 
 col_tax, col_service, col_discount = st.columns(3)
 with col_tax:
@@ -201,7 +189,8 @@ with col_discount:
 # 4. HASIL AKHIR
 # ==============================================================================
 st.divider()
-st.markdown("### 🧾 Hasilnya")
+st.markdown("<h4 style='margin:0;'>🧾 Hasilnya</h4>", unsafe_allow_html=True)
+st.write("")
 
 if st.session_state.daftar_teman and st.session_state.pesanan:
     tagihan_per_orang = {nama: 0.0 for nama in st.session_state.daftar_teman}
