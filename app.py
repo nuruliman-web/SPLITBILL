@@ -24,18 +24,18 @@ if "pesanan" not in st.session_state:
 st.markdown("<h4 style='margin:0;'>👥 Siapa Aja Yang Ikut?</h4>", unsafe_allow_html=True)
 
 teman_input = st.text_input(
-    "Masukkan nama teman lu (pisahkan dengan koma):", 
-    placeholder="Contoh: Monyet, Babi, Anjing",
+    "Masukin Nama Temen Lu (pisahin make koma):", 
+    placeholder="muklis, budi, agus",
     key="input_nama_teman",
     label_visibility="collapsed"
 )
 
-if st.button("💾 Simpan Daftar Teman", type="primary", use_container_width=True):
+if st.button("Simpen Namanya Nih", type="primary", use_container_width=True):
     list_nama = [nama.strip() for nama in teman_input.split(",") if nama.strip()]
     
     if list_nama:
         st.session_state.daftar_teman = list_nama
-        st.success(f"✅ Berhasil menyimpan {len(list_nama)} teman!")
+        st.success(f"✅ Berhasilkan {len(list_nama)} teman!")
     else:
         st.error("❌ Input yang bener jing!.")
 
@@ -53,7 +53,7 @@ st.markdown("---")
 st.markdown("<h4 style='margin:0;'>🍔 Masukin Apa Aja yg Lu Makan</h4>", unsafe_allow_html=True)
 
 with st.form("form_tambah_item", clear_on_submit=True):
-    nama_item = st.text_input("Nama Makanan/Minuman:", placeholder="Contoh: Nasi Goreng")
+    nama_item = st.text_input("Nama Makanan Apa Minuman:", placeholder="Nasgor")
     
     harga_item = st.number_input(
         "Harga (Rp):", 
@@ -82,7 +82,7 @@ with st.form("form_tambah_item", clear_on_submit=True):
         unsafe_allow_html=True
     )
     
-    st.markdown("<p style='font-size: 14px; margin-bottom: 5px;'><b>Siapa Aja yang Pesen?:</b></p>", unsafe_allow_html=True)
+    st.markdown("<p style='font-size: 14px; margin-bottom: 5px;'><b>Siapa Aja yang Pesen?</b></p>", unsafe_allow_html=True)
     
     siapa_makan = []
     if st.session_state.daftar_teman:
@@ -94,10 +94,10 @@ with st.form("form_tambah_item", clear_on_submit=True):
                 
         st.markdown('</div>', unsafe_allow_html=True)
     else:
-        st.caption("⚠️ Belum ada nama teman. Isi dulu di langkah 1 ya!")
+        st.caption("⚠️ Buru-Buru Bener, Masukin Nama Temen Lu Noh")
     
     st.write("") 
-    submit_button = st.form_submit_button(label="➕ Tambah Item", use_container_width=True)
+    submit_button = st.form_submit_button(label="➕ Itung", use_container_width=True)
 
 if submit_button:
     if not st.session_state.daftar_teman:
@@ -123,14 +123,14 @@ if st.session_state.pesanan:
     for index, p in enumerate(st.session_state.pesanan):
         with st.container(border=True):
             st.markdown(f"**{p['item']}**")
-            st.markdown(f"Rp {p['harga']:,} ||  Dipesan Oleh: {', '.join(p['dipesan_oleh'])}")
+            st.markdown(f"Rp {p['harga']:,} ||  Yang Pesen Nih: {', '.join(p['dipesan_oleh'])}")
             
             if st.button("Hapus", key=f"hapus_{index}", type="secondary", use_container_width=True):
                 st.session_state.pesanan.pop(index)
                 st.rerun()
                 
     st.write("") 
-    if st.button("🚨 Reset Semua Pesanan", type="secondary", use_container_width=True):
+    if st.button("🚨 Salah? Apus Semua", type="secondary", use_container_width=True):
         st.session_state.pesanan = []
         st.rerun()
 
@@ -192,8 +192,8 @@ if st.session_state.daftar_teman and st.session_state.pesanan:
         f"🍔 **Harga Makanan (Subtotal):** Rp {total_subtotal:,.0f}\n\n"
         f"📌 **Pajak ({pajak_persen}%):** Rp {nilai_pajak_rp:,.0f}\n\n"
         f"⚡ **Service Charge ({service_persen}%):** Rp {nilai_service_rp:,.0f}\n\n"
-        f"🎈 **Diskon Nota:** -Rp {diskon_rp:,.0f}\n\n"
-        f"💵 **TOTAL AKHIR GABUNGAN:** Rp {total_akhir:,.0f}"
+        f"🎈 **Diskon :** -Rp {diskon_rp:,.0f}\n\n"
+        f"💵 **TOTAL AKHIR SEMUA:** Rp {total_akhir:,.0f}"
     )
 
     # Distribusi hitungan adil per orang
