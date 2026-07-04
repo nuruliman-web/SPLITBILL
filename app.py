@@ -40,7 +40,7 @@ if st.button("💾 Simpan Daftar Teman", type="primary", use_container_width=Tru
 
 # Tampilan "Teman aktif" yang adaptif
 if st.session_state.daftar_teman:
-    st.info(f"🎯 **Ini yang Lu Ajak?:** {', '.join(st.session_state.daftar_teman)}")
+    st.info(f"🎯 **Ini yang Lu Ajak?** {', '.join(st.session_state.daftar_teman)}")
 else:
     st.warning("⚠️ Input yang bener jing!")
 
