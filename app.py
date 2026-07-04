@@ -4,7 +4,7 @@ import pandas as pd
 # Set layout ke centered agar pas untuk rasio layar vertikal HP
 st.set_page_config(page_title="Split Bill Apps", page_icon="💰", layout="centered")
 
-# Judul menggunakan format Markdown standar agar warnanya adaptif mengikuti sistem (Dark/Light)
+# Judul menggunakan format Markdown standar agar adaptif mengikuti sistem (Dark/Light)
 st.title("💰 Split Bill Calculator")
 st.caption("Bagi rata tagihan bareng temen langsung dari HP!")
 
@@ -38,16 +38,15 @@ if st.button("💾 Simpan Daftar Teman", type="primary", use_container_width=Tru
     else:
         st.error("❌ Gagal menyimpan! Harap masukkan minimal satu nama teman.")
 
-# Tampilan "Teman aktif" yang adaptif mengikuti tema layar HP/Laptop
+# Tampilan "Teman aktif" yang adaptif
 if st.session_state.daftar_teman:
-    # Menggunakan st.info agar background dan warna teksnya otomatis menyesuaikan dark/light mode sistem
     st.info(f"🎯 **Teman aktif:** {', '.join(st.session_state.daftar_teman)}")
 else:
     st.warning("⚠️ Belum ada teman yang disimpan. Ketik nama di atas lalu klik tombol Simpan.")
 
 
 # ==============================================================================
-# 2. INPUT ITEM PESANAN (Checkbox Horizontal & Auto-Wrap FIX)
+# 2. INPUT ITEM PESANAN & FIX CHECKBOX HORIZONTAL
 # ==============================================================================
 st.markdown("---")
 st.markdown("### 🍔 2. Detail Pesanan")
@@ -55,6 +54,7 @@ st.markdown("### 🍔 2. Detail Pesanan")
 with st.form("form_tambah_item", clear_on_submit=True):
     nama_item = st.text_input("Nama Makanan/Minuman:", placeholder="Contoh: Nasi Goreng")
     
+    # Keyboard HP angka saja (step=1)
     harga_item = st.number_input(
         "Harga (Rp):", 
         min_value=0, 
@@ -63,18 +63,16 @@ with st.form("form_tambah_item", clear_on_submit=True):
         placeholder="Masukkan harga angka saja"
     )
     
-    # --- FIX: Paksa semua elemen checkbox di dalam form ini agar berjejer ke samping ---
+    # CSS kustom untuk memaksa checkbox bawaan Streamlit berjejer ke samping
     st.markdown(
         """
         <style>
-        /* Mencari pembungkus grup checkbox bawaan streamlit */
         [data-testid="stForm"] .stCheckbox {
             display: inline-block !important;
             width: auto !important;
             margin-right: 15px !important;
             margin-bottom: 5px !important;
         }
-        /* Membuat wadah penampungnya agar otomatis turun baris jika kepenuhan */
         .checkbox-group {
             display: block;
             width: 100%;
@@ -88,9 +86,9 @@ with st.form("form_tambah_item", clear_on_submit=True):
     
     siapa_makan = []
     if st.session_state.daftar_teman:
-        # Dibungkus dalam class agar CSS di atas berjalan sempurna
         st.markdown('<div class="checkbox-group">', unsafe_allow_html=True)
         
+        # Buat checkbox untuk masing-masing nama teman
         for nama in st.session_state.daftar_teman:
             if st.checkbox(nama, key=f"cb_{nama}"):
                 siapa_makan.append(nama)
@@ -98,7 +96,6 @@ with st.form("form_tambah_item", clear_on_submit=True):
         st.markdown('</div>', unsafe_allow_html=True)
     else:
         st.caption("⚠️ Belum ada nama teman. Isi dulu di langkah 1 ya!")
-    # -----------------------------------------------------
     
     st.write("") 
     submit_button = st.form_submit_button(label="➕ Tambah Item", use_container_width=True)
@@ -113,12 +110,34 @@ if submit_button:
     elif not siapa_makan:
         st.error("❌ Pilih minimal satu orang yang memesan!")
     else:
+        # DI-FIX: Menyimpan nama kunci yang benar sebagai 'dipesan_oleh' agar tidak bentrok atau hilang
         st.session_state.pesanan.append({
             "item": nama_item,
             "harga": int(harga_item),
-            "patungan": siapa_makan
+            "dipesan_oleh": siapa_makan
         })
         st.rerun()
+
+# DI-FIX: Tampilan Daftar Pesanan (Auto-Theme & Muncul Detail Nama Orang)
+if st.session_state.pesanan:
+    st.markdown("#### 📝 Daftar Pesanan Saat Ini:")
+    
+    for index, p in enumerate(st.session_state.pesanan):
+        with st.container(border=True):
+            # Menggunakan Markdown standar agar mendukung Dark Mode / Light Mode otomatis
+            st.markdown(f"**{p['item']}**")
+            st.markdown(f"Rp {p['harga']:,} • Oleh: {', '.join(p['dipesan_oleh'])}")
+            
+            if st.button("🗑️ Hapus", key=f"hapus_{index}", type="secondary", use_container_width=True):
+                st.session_state.pesanan.pop(index)
+                st.rerun()
+                
+    st.write("") 
+    if st.button("🚨 Reset Semua Pesanan", type="secondary", use_container_width=True):
+        st.session_state.pesanan = []
+        st.rerun()
+
+
 # ==============================================================================
 # 3. BIAYA TAMBAHAN
 # ==============================================================================
@@ -142,9 +161,9 @@ if st.session_state.daftar_teman and st.session_state.pesanan:
     total_subtotal = 0
 
     for p in st.session_state.pesanan:
-        harga_per_orang = p["harga"] / len(p["patungan"])
+        harga_per_orang = p["harga"] / len(p["dipesan_oleh"])
         total_subtotal += p["harga"]
-        for orang in p["patungan"]:
+        for orang in p["dipesan_oleh"]:
             if orang in tagihan_per_orang:
                 tagihan_per_orang[orang] += harga_per_orang
 
