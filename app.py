@@ -53,9 +53,9 @@ with st.form("form_tambah_item"):
     with col2:
         harga_item = st.number_input("Harga (Rp):", min_value=0, step=1000)
     
-    # Menggunakan daftar_teman dari session_state
+    # Mengubah label menjadi "Dipesan oleh:" sesuai request kamu
     siapa_makan = st.multiselect(
-        "Siapa yang patungan untuk item ini?", 
+        "Dipesan oleh:", 
         options=st.session_state.daftar_teman
     )
     
@@ -69,7 +69,7 @@ if submit_button:
     elif harga_item <= 0:
         st.error("❌ Gagal! Harga harus lebih dari Rp 0.")
     elif not siapa_makan:
-        st.error("❌ Gagal! Pilih minimal satu orang yang patungan.")
+        st.error("❌ Gagal! Pilih minimal satu orang pada kolom 'Dipesan oleh:'.")
     else:
         st.session_state.pesanan.append({
             "item": nama_item,
@@ -87,15 +87,15 @@ if st.session_state.pesanan:
     for index, p in enumerate(st.session_state.pesanan):
         col_item, col_aksi = st.columns([5, 1])
         with col_item:
-            st.write(f"**{p['item']}** - Rp {p['harga']:,} (Patungan: {', '.join(p['patungan'])})")
+            # Mengubah teks info di daftar pesanan juga menjadi "Dipesan oleh"
+            st.write(f"**{p['item']}** - Rp {p['harga']:,} (Dipesan oleh: {', '.join(p['patungan'])})")
         with col_aksi:
-            # Membuat tombol hapus unik menggunakan index
             if st.button("🗑️ Hapus", key=f"hapus_{index}"):
                 st.session_state.pesanan.pop(index)
                 st.success(f"Item berhasil dihapus!")
                 st.rerun()
                 
-    st.write("") # Spasi tambahan
+    st.write("") 
     if st.button("🚨 Reset Semua Pesanan", type="secondary"):
         st.session_state.pesanan = []
         st.rerun()
@@ -114,7 +114,7 @@ with col_service:
 
 
 # ==============================================================================
-# 4. Perhitungan Akhir
+# 4. Perhitungan Akhir (Hanya Menampilkan Total yang Harus Dibayar)
 # ==============================================================================
 st.markdown("---")
 st.subheader("🧾 4. Total Tagihan Per Orang")
@@ -136,20 +136,20 @@ if st.session_state.daftar_teman and st.session_state.pesanan:
     faktor_tambahan = 1 + (pajak_persen / 100) + (service_persen / 100)
     total_akhir = total_subtotal * faktor_tambahan
 
-    # Tampilkan Ringkasan Total
+    # Tampilkan Ringkasan Total Keseluruhan Struk
     st.info(f"**Subtotal:** Rp {total_subtotal:,.0f}  \n"
-            f"**Total (+ Pajak & Service):** Rp {total_akhir:,.0f}")
+            f"**Total Akhir (+ Pajak & Service):** Rp {total_akhir:,.0f}")
 
-    # Hitung final per orang setelah pajak & service
+    # Hitung final per orang (Hanya mengambil Total Akhir yang harus dibayar)
     data_final = []
     for orang, subtotal_orang in tagihan_per_orang.items():
         total_orang = subtotal_orang * faktor_tambahan
         data_final.append({
             "Nama Teman": orang,
-            "Subtotal (Rp)": round(subtotal_orang),
-            "Total Akhir (Rp)": round(total_orang)
+            "Total yang Harus Dibayar (Rp)": f"Rp {round(total_orang):,}"
         })
 
+    # Membuat DataFrame dan menampilkannya sebagai tabel bersih
     df_final = pd.DataFrame(data_final)
     st.table(df_final.set_index("Nama Teman"))
 else:
